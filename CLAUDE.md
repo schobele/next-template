@@ -4,139 +4,252 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js 15 template repository built with:
+This is a **Next.js 15 template repository** that provides a production-ready foundation with best practices, modern architecture patterns, and a comprehensive tech stack. While some features are implemented, many patterns and directories serve as **guidelines for future development**.
 
-- TypeScript
-- Tailwind CSS v4
-- Prisma with PostgreSQL
-- Better Auth
-- React Email
-- Resend
-- Shadcn/ui
-- Ultracite
-- Bun
-- zod
-- motion (formely framer-motion)
-- ai / @ai-sdk/openai
+### Core Technologies
 
-## Key Commands
+- **Framework**: Next.js 15 with App Router and React 19
+- **Language**: TypeScript with strict mode
+- **Styling**: Tailwind CSS v4 (PostCSS-based) with OKLCH colors
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: Better Auth with comprehensive plugin suite
+- **Email**: React Email + Resend
+- **Package Manager**: Bun (preferred over npm/yarn/pnpm)
+- **Code Quality**: Ultracite (Biome) for lightning-fast linting/formatting
 
-### Development
+### Key Dependencies
+
+#### UI & Components
+- **shadcn/ui**: Accessible component library built on Radix UI
+- **@dnd-kit**: Drag and drop functionality
+- **@tanstack/react-table**: Powerful data tables
+- **cmdk**: Command palette interface
+- **sonner**: Toast notifications
+- **vaul**: Drawer component
+- **lucide-react** & **@tabler/icons-react**: Icon libraries
+
+#### Forms & Validation
+- **react-hook-form**: Performant forms with easy validation
+- **@hookform/resolvers**: Schema validation adapters
+- **zod**: TypeScript-first schema validation
+- **input-otp**: OTP input component
+
+#### Animation & Interaction
+- **motion** (formerly framer-motion): Production-ready animations
+- **embla-carousel-react**: Lightweight carousel
+- **tw-animate-css**: Tailwind CSS animation utilities
+
+#### Data & State
+- **ai** & **@ai-sdk/openai**: AI/LLM integration
+- **date-fns**: Modern date utility library
+- **react-day-picker**: Flexible date picker
+
+#### Developer Experience
+- **next-themes**: Dark mode support
+- **husky**: Git hooks for code quality
+
+## Quick Start
+
+### Essential Commands
 
 ```bash
-# Code quality checks and auto-fix (biome)
-bun run lint-and-format
+# Development
+bun dev                    # Start dev server with Turbopack
 
-# Type check (tsc --noEmit)
-bun run typecheck
+# Code quality
+bun run lint-and-format    # Auto-fix code issues (Biome)
+bun run typecheck          # TypeScript type checking
 
-# Run a specific test file
-bun test path/to/specific.test.ts
+# Testing
+bun test                   # Run all tests
+bun test --watch          # Watch mode
 
-# Run all tests
-bun test
+# Database
+bun prisma migrate dev    # Create migration
+bun prisma generate       # Update Prisma client
+bun prisma studio         # Visual database editor
+
+# Build & Deploy
+bun run build             # Production build
+bun run start             # Start production server
 ```
 
-Adopt a philosophy rooted in **Domain-Driven Design (DDD)** and **Vertical Slicing**. Instead of organizing code by technical layers (e.g., `controllers`, `services`, `models`), we organize it by business features or "domains." This makes the codebase easier to navigate, maintain, and scale as the application grows.
+## Architecture Philosophy
 
-### 1. Core Philosophy: Vertical Slicing & DDD
+This application follows **Domain-Driven Design (DDD)** with **Vertical Slicing**. When adding new features, organize code by business domain rather than technical layers.
 
-For a modern, production-ready application, we move away from the traditional horizontal (layer-based) architecture.
+### Core Principles
 
-- **Horizontal Slicing (The Old Way):** A feature change requires you to jump between `models`, `views`, and `controllers` folders, which are often far apart. This increases cognitive load.
-- **Vertical Slicing (The New Way):** All the code for a single feature—UI components, server-side logic, data queries, and types—lives together in the same directory. When you work on the "user profile" feature, you work inside the `features/user-profile` directory. This colocation is the key to maintainability.
+1. **Feature Colocation**: Keep all related code together in feature directories
+2. **Server-First**: Leverage React Server Components and Server Actions
+3. **Type Safety**: Use TypeScript and Zod for end-to-end type safety
+4. **Progressive Enhancement**: Start with server rendering, add client interactivity only when needed
 
-This approach pairs perfectly with Next.js App Router, React Server Components (RSC), and Server Actions, which naturally encourage grouping server and client logic by route or feature.
+### Adding New Features
 
-### 2. The Repository Structure
+When implementing a new feature (e.g., "posts"), follow this structure:
 
-This structure separates Next.js routing concerns from your core application logic, providing clarity and scalability.
+```
+features/posts/
+├── components/       # Feature-specific React components
+├── actions.ts       # Server Actions for mutations
+├── queries.ts       # Data fetching functions
+├── types.ts         # TypeScript types and Zod schemas
+├── hooks.ts         # Custom React hooks (if needed)
+└── service.ts       # Business logic layer (if complex)
+```
+
+**Important**: Update this CLAUDE.md file when adding major features or changing architectural patterns.
+
+## Repository Structure
+
+The application follows a feature-based architecture. Here's the recommended structure as you grow your app:
 
 ```plaintext
 .
-├── app/                      # Next.js App Router (Routing and Layouts)
-│   ├── (app)/                # Authenticated application routes
-│   │   ├── dashboard/
-│   │   │   └── page.tsx
-│   │   └── settings/
-│   │       └── page.tsx
-│   ├── (public)/          # Public routes
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── api/                  # API routes (webhooks, etc. -> e.g. /api/posts/events)
-│   │   └── ...
-│   ├── layout.tsx            # Root layout
-│   └── globals.css           # Global styles
+├── app/                      # Next.js App Router
+│   ├── (auth)/              # Auth route group (sign-in, reset-password, etc.)
+│   ├── (app)/               # Protected application routes
+│   │   ├── dashboard/       # Dashboard with sidebar layout
+│   │   │   └── [feature]/   # Add dashboard feature routes here
+│   │   ├── settings/        # User settings
+│   │   │   └── [feature]/   # Add comprehensive feature outside of dashboard responsibility
+│   ├── api/                 # API routes
+│   │   └── auth/[...all]/   # Better Auth catch-all route
+│   ├── layout.tsx           # Root layout with providers
+│   └── globals.css          # Global styles and CSS variables
 │
-├── components/           # Shared, global components
-│   ├── ui/               # UI primitives (e.g., shadcn/ui Button, Card)
-│   └── shared/           # Complex shared components (e.g., PageHeader)
+├── components/              # Shared components
+│   ├── ui/                  # shadcn/ui components (Button, Card, etc.)
+│   ├── shared/              # App-specific shared components
+│   └── *.tsx                # Global components (app-sidebar, site-header)
 │
-├── features/             # ✨ VERTICAL SLICES (The heart of the app)
-│   ├── posts/            # Example feature (posts)
-│   │   ├── components/   # Components specific to 'posts'
-│   │   │   ├── post-card.tsx
-│   │   │   └── create-post-form.tsx
-│   │   ├── api/          # API routes for 'posts'
-│   │   │   └── events.ts # Route handlers for post webhooks
-│   │   ├── queries.ts    # Data fetching functions for 'posts'
-│   │   ├── service.ts    # Service layer for 'posts'
-│   │   ├── actions.ts    # Server Actions for 'posts'
-│   │   ├── hooks.ts      # Custom hooks for 'posts'
-│   │   └── types.ts      # TypeScript types for 'posts'
+├── features/                # Feature modules (vertical slices)
+│   ├── auth/                # Authentication feature (implemented)
+│   │   ├── components/      # Auth-specific components
+│   │   ├── actions.ts       # Server actions
+│   │   ├── queries.ts       # Data fetching
+│   │   └── types.ts         # Types and schemas
 │   │
-│   └── auth/
-│       ├── ...           # Same structure for the 'auth' domain
+│   └── [your-feature]/      # Add new features here following auth pattern
 │
-├── lib/                  # Low-level utilities and configurations
-│   ├── auth.ts           # Authentication config (e.g., NextAuth.js)
-│   ├── db/               # Database client, schema, and migrations
-│   ├── utils.ts          # General helper functions (e.g., cn)
-│   └── validators/       # Zod schemas for data validation
+├── lib/                     # Core utilities and config
+│   ├── auth/                # Better Auth configuration
+│   ├── db/                  # Prisma client instance
+│   ├── email/               # Email templates and config
+│   ├── utils/               # Utility functions and action helpers
+│   └── validators/          # Shared Zod schemas
 │
-├── hooks/                # Shared, global custom React hooks
-├── config/               # Application-wide configuration
-└── types/                # Global TypeScript types
-│
-├── public/                   # Static assets (images, fonts)
-├── scripts/                  # Standalone scripts (e.g., DB seeding)
-├── tailwind.config.ts
-└── tsconfig.json
+├── hooks/                   # Global React hooks
+├── types/                   # Global TypeScript types
+├── prisma/                  # Database schema and migrations
+└── public/                  # Static assets
 ```
 
-### 3. Data Flow: RSC, Server Actions, and Queries
+### Route Groups
 
-This architecture fully embraces the server-centric model of the Next.js App Router.
+- `(auth)`: Public authentication pages
+- `(app)`: Protected application routes requiring authentication
+- Use route groups to organize related pages without affecting URLs
 
-#### **Data Fetching: Server Components First**
+## Data Flow Patterns
 
-By default, all data fetching should happen on the server, inside React Server Components (RSCs).
+### Data Fetching: Server Components First
 
-1. **Define Queries:** Create reusable data-fetching functions in your feature's `queries.ts` file. These functions can directly access your database.
-2. **Call from RSCs:** Import and `await` these query functions directly within your `page.tsx` or server-only layout files.
+Fetch data directly in Server Components for optimal performance:
 
-This pattern eliminates the need for API endpoints for data fetching and avoids client-side request waterfalls, resulting in faster page loads.
+```typescript
+// features/posts/queries.ts
+export async function getPosts(userId: string) {
+  return db.post.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' }
+  });
+}
 
-#### **Data Mutations: Server Actions**
+// app/(app)/posts/page.tsx
+export default async function PostsPage() {
+  const posts = await getPosts(userId);
+  return <PostList posts={posts} />;
+}
+```
 
-All data creations, updates, and deletions should be handled by Server Actions.
+### Data Mutations: Server Actions
 
-1. **Define Actions:** Create your Server Actions in the feature's `actions.ts` file. These are async functions marked with the `"use server";` directive. They contain the logic to mutate data in your database.
-2. **Validate Input:** Use a library like Zod inside your Server Actions to validate the incoming data. Never trust the client.
-3. **Invoke from Client:** Call these actions from your client components, typically within a form's `action` prop or an event handler. Use React's `useFormState` and `useFormStatus` hooks to handle pending states, errors, and optimistic updates without complex client-side state management.
+Handle all mutations through Server Actions with proper validation:
 
-This approach keeps mutation logic on the server, enhances security, and dramatically simplifies form handling on the client.
+```typescript
+// features/posts/actions.ts
+"use server";
 
-### 4. Key Takeaways & Best Practices
+export async function createPost(formData: FormData) {
+  const session = await auth.api.getSession();
+  if (!session) return actionError("Unauthorized");
 
-- **Embrace the Server:** Do as much as you can on the server. Fetch data, mutate data, and render components there. Only use `"use client"` when you absolutely need interactivity, state, or browser-only APIs.
-- **Colocate by Feature:** The `features` directory is your most important asset for long-term maintainability. Be disciplined about keeping feature-specific logic inside its designated slice.
-- **`lib` is for Truly Shared Code:** The `lib` directory should only contain code that is generic and can be used by _any_ feature (e.g., database client, auth config, date formatters). If code is only used by one or two features, it's better to keep it within those features.
-- **Validation is Non-Negotiable:** Always validate data on the server within your Server Actions before it touches your database. Zod is the industry standard for this.
-- **Keep Client State Simple:** The combination of RSC and Server Actions drastically reduces the need for complex client-side state managers like Redux or Zustand. Start with `useState` and `useReducer`. Reach for more powerful tools only when component prop drilling becomes a significant problem.
-- **Composition over Inheritance:** Use composition to build complex components rather than extending base classes. Component Composition with `children` is the preferred way to build complex components.
+  return safeAction(async () => {
+    const data = createPostSchema.parse({
+      title: formData.get("title"),
+      content: formData.get("content"),
+    });
+    
+    return db.post.create({
+      data: { ...data, userId: session.user.id }
+    });
+  });
+}
+```
 
-This architecture provides a robust foundation for building a production-grade Next.js application that is a pleasure to work on, easy to scale, and fast for your users.
+### Client Integration
+
+Use the `useActionState` hook for form handling:
+
+```tsx
+// features/posts/components/create-post-form.tsx
+"use client";
+
+export function CreatePostForm() {
+  const [state, action, pending] = useActionState(createPost, null);
+  
+  return (
+    <form action={action}>
+      {/* Form fields */}
+      {state?.error && <Alert>{state.error}</Alert>}
+      <Button disabled={pending}>
+        {pending ? "Creating..." : "Create Post"}
+      </Button>
+    </form>
+  );
+}
+```
+
+## Best Practices
+
+### Development Guidelines
+
+1. **Server-First Development**
+   - Default to Server Components, use `"use client"` only when needed
+   - Fetch data in Server Components to eliminate waterfalls
+   - Handle mutations with Server Actions for better security
+
+2. **Feature Organization**
+   - Keep feature code colocated in `features/[feature-name]`
+   - Share only truly generic code via `lib/` directory
+   - Update CLAUDE.md when adding new features
+
+3. **Type Safety**
+   - Use Zod schemas for all external data validation
+   - Leverage the `ActionResponse<T>` pattern for Server Actions
+   - Define types in feature-specific `types.ts` files
+
+4. **Component Architecture**
+   - Prefer composition over prop drilling
+   - Use shadcn/ui components as building blocks
+   - Create feature-specific components before shared ones
+
+5. **State Management**
+   - Start with `useState` and `useReducer`
+   - Use Server Actions + `useActionState` for forms
+   - Avoid client-side state for server-owned data
 
 ## Architecture Overview
 
@@ -190,35 +303,92 @@ The project uses Ultracite (Biome) for code quality with strict rules:
 
 ### Protected Routes
 
-Routes are protected using middleware that checks for valid sessions:
+Routes are protected using Next.js middleware. Example implementation:
 
 ```typescript
-// Protected routes start with /dashboard
-if (pathname.startsWith("/dashboard")) {
-	// Check session validity
+// middleware.ts
+import { getSessionCookie } from "better-auth/cookies";
+
+export async function middleware(request: NextRequest) {
+  const cookies = getSessionCookie(request);
+  if (!cookies) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/dashboard", "/settings", "/admin/:path*"]
+};
+```
+
+Extend the `matcher` array as you add protected routes.
+
+### Server Actions Pattern
+
+This application uses a sophisticated type-safe pattern for Server Actions. Use the utilities from `/lib/utils/actions.ts`:
+
+```typescript
+import { actionSuccess, actionError, safeAction } from "@/lib/utils/actions";
+
+// Type-safe action response
+export async function createPost(data: FormData) {
+  return safeAction(async () => {
+    const validated = postSchema.parse(data);
+    const post = await db.post.create({ data: validated });
+    return post;
+  });
+}
+
+// Manual error handling with details
+export async function deletePost(id: string) {
+  try {
+    await db.post.delete({ where: { id } });
+    return actionSuccess({ deleted: true });
+  } catch (error) {
+    return actionError(
+      "Failed to delete post",
+      "DELETE_FAILED",
+      { postId: id }
+    );
+  }
 }
 ```
 
-### Server Actions
-
-Use the pattern from `/lib/utils/actions.ts` for consistent error handling:
-
-```typescript
-export async function actionWithState<T>() {
-	try {
-		// Action logic
-		return { success: true, data: result };
-	} catch (error) {
-		return { success: false, error: error.message };
-	}
-}
-```
+The `ActionResponse<T>` type provides:
+- Discriminated union for success/error states
+- Optional error codes and details
+- Full TypeScript inference
+- Zod schema integration
 
 ### Component Organization
 
 - UI components from shadcn/ui are in `/components/ui/`
 - Authentication components are in `/components/`
 - Use existing UI components before creating new ones
+
+## Styling with Tailwind CSS v4
+
+This project uses Tailwind CSS v4 with PostCSS (no `tailwind.config.ts` file). Key features:
+
+### Configuration
+- PostCSS-based setup via `postcss.config.mjs`
+- Custom CSS properties in `app/globals.css`
+- OKLCH color system for better color manipulation
+- Custom fonts and shadows defined as CSS variables
+
+### Usage
+```css
+/* app/globals.css */
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+```
+
+### Theme Customization
+Modify CSS custom properties in `globals.css`:
+- Colors use OKLCH format (e.g., `--primary: oklch(0.9307 0.1435 99.6693)`)
+- Responsive design with container queries
+- Dark mode via `next-themes`
 
 ## Environment Variables
 
@@ -232,11 +402,20 @@ Required environment variables:
 
 ## Common Development Tasks
 
-### Modifying Email Templates
+### Adding a New Feature
 
-1. Edit React Email components in `/lib/email/`
-2. Test locally with development email settings
-3. Ensure responsive design for email clients
+1. Create feature directory: `features/[feature-name]/`
+2. Add components, actions, queries, and types following the auth example
+3. Create routes in `app/(app)/[feature-name]/`
+4. Update Prisma schema if needed
+5. Add feature documentation to this file
+
+### Working with Email Templates
+
+Email templates use React Email components in `/lib/email/`:
+- Edit templates using React components
+- Test with development preview
+- Ensure responsive design
 
 ## Using Bun
 
@@ -261,14 +440,28 @@ Default to using Bun instead of Node.js.
 
 ### Testing
 
-Use `bun test` to run tests.
+Use Bun's built-in test runner:
 
-```ts#index.test.ts
+```typescript
+// features/posts/posts.test.ts
 import { test, expect } from "bun:test";
+import { createPost } from "./actions";
 
-test("hello world", () => {
-  expect(1).toBe(1);
+test("createPost validates input", async () => {
+  const formData = new FormData();
+  formData.set("title", "");
+  
+  const result = await createPost(formData);
+  expect(result.success).toBe(false);
+  expect(result.error).toContain("Required");
 });
+```
+
+Run tests with:
+```bash
+bun test                    # Run all tests
+bun test posts             # Run tests matching "posts"
+bun test --watch          # Watch mode
 ```
 
 ## Ultracite Context
