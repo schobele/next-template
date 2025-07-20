@@ -1,10 +1,13 @@
 "use client";
 
-import { ChevronDown, PlusCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Command,
 	CommandGroup,
@@ -12,32 +15,30 @@ import {
 	CommandList,
 	CommandSeparator,
 } from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { ChevronDown, PlusCircle } from "lucide-react";
+import type { Session } from "@/features/auth/types";
 import { client, useSession } from "@/lib/auth/client";
-import type { Session } from "@/lib/auth/types";
+import { useRouter } from "next/navigation";
 
 export default function AccountSwitcher({ sessions }: { sessions: Session[] }) {
 	const { data: currentUser } = useSession();
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
+
 	return (
-		<Popover onOpenChange={setOpen} open={open}>
+		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button
+					variant="outline"
+					role="combobox"
 					aria-expanded={open}
 					aria-label="Select a user"
 					className="w-[250px] justify-between"
-					role="combobox"
-					variant="outline"
 				>
 					<Avatar className="mr-2 h-6 w-6">
 						<AvatarImage
-							alt={currentUser?.user.name}
 							src={currentUser?.user.image || undefined}
+							alt={currentUser?.user.name}
 						/>
 						<AvatarFallback>{currentUser?.user.name.charAt(0)}</AvatarFallback>
 					</Avatar>
@@ -50,15 +51,15 @@ export default function AccountSwitcher({ sessions }: { sessions: Session[] }) {
 					<CommandList>
 						<CommandGroup heading="Current Account">
 							<CommandItem
-								className="w-full justify-between text-sm"
-								key={currentUser?.user.id}
 								onSelect={() => {}}
+								className="text-sm w-full justify-between"
+								key={currentUser?.user.id}
 							>
 								<div className="flex items-center">
 									<Avatar className="mr-2 h-5 w-5">
 										<AvatarImage
-											alt={currentUser?.user.name}
 											src={currentUser?.user.image || undefined}
+											alt={currentUser?.user.name}
 										/>
 										<AvatarFallback>
 											{currentUser?.user.name.charAt(0)}
@@ -71,10 +72,9 @@ export default function AccountSwitcher({ sessions }: { sessions: Session[] }) {
 						<CommandSeparator />
 						<CommandGroup heading="Switch Account">
 							{sessions
-								.filter((s) => s.user.id !== currentUser?.user.id)
+								.filter((s) => s.user?.id !== currentUser?.user.id)
 								.map((u, i) => (
 									<CommandItem
-										className="text-sm"
 										key={i}
 										onSelect={async () => {
 											await client.multiSession.setActive({
@@ -82,15 +82,16 @@ export default function AccountSwitcher({ sessions }: { sessions: Session[] }) {
 											});
 											setOpen(false);
 										}}
+										className="text-sm"
 									>
 										<Avatar className="mr-2 h-5 w-5">
 											<AvatarImage
-												alt={u.user.name}
 												src={u.user.image || undefined}
+												alt={u.user.name}
 											/>
 											<AvatarFallback>{u.user.name.charAt(0)}</AvatarFallback>
 										</Avatar>
-										<div className="flex w-full items-center justify-between">
+										<div className="flex items-center justify-between w-full">
 											<div>
 												<p>{u.user.name}</p>
 												<p className="text-xs">({u.user.email})</p>
@@ -104,11 +105,11 @@ export default function AccountSwitcher({ sessions }: { sessions: Session[] }) {
 					<CommandList>
 						<CommandGroup>
 							<CommandItem
-								className="cursor-pointer text-sm"
 								onSelect={() => {
 									router.push("/sign-in");
 									setOpen(false);
 								}}
+								className="cursor-pointer text-sm"
 							>
 								<PlusCircle className="mr-2 h-5 w-5" />
 								Add Account

@@ -4,51 +4,139 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js 15 template repository with a comprehensive authentication system built on Better Auth. The template uses TypeScript with strict mode, Tailwind CSS v4, and Prisma with PostgreSQL.
+This is a Next.js 15 template repository built with:
+
+- TypeScript
+- Tailwind CSS v4
+- Prisma with PostgreSQL
+- Better Auth
+- React Email
+- Resend
+- Shadcn/ui
+- Ultracite
+- Bun
+- zod
+- motion (formely framer-motion)
+- ai / @ai-sdk/openai
 
 ## Key Commands
 
 ### Development
 
 ```bash
-# Start development server with Turbopack
-bun run dev
+# Code quality checks and auto-fix (biome)
+bun run lint-and-format
 
-# Build for production
-bun run build
+# Type check (tsc --noEmit)
+bun run typecheck
 
-# Start production server
-bun run start
-
-# Code quality checks and auto-fix
-bun run check
-```
-
-### Database Management
-
-```bash
-# Start PostgreSQL container
-docker-compose up -d
-
-# Generate Prisma client
-bun prisma generate
-
-# Run database migrations
-bun prisma migrate dev
-
-# Open Prisma Studio
-bun prisma studio
-```
-
-### Testing Individual Features
-
-```bash
 # Run a specific test file
-bun test path/to/test.spec.ts
+bun test path/to/specific.test.ts
 
-# Run tests in watch mode
-bun test --watch
+# Run all tests
+bun test
 ```
+
+Adopt a philosophy rooted in **Domain-Driven Design (DDD)** and **Vertical Slicing**. Instead of organizing code by technical layers (e.g., `controllers`, `services`, `models`), we organize it by business features or "domains." This makes the codebase easier to navigate, maintain, and scale as the application grows.
+
+### 1. Core Philosophy: Vertical Slicing & DDD
+
+For a modern, production-ready application, we move away from the traditional horizontal (layer-based) architecture.
+
+- **Horizontal Slicing (The Old Way):** A feature change requires you to jump between `models`, `views`, and `controllers` folders, which are often far apart. This increases cognitive load.
+- **Vertical Slicing (The New Way):** All the code for a single feature—UI components, server-side logic, data queries, and types—lives together in the same directory. When you work on the "user profile" feature, you work inside the `features/user-profile` directory. This colocation is the key to maintainability.
+
+This approach pairs perfectly with Next.js App Router, React Server Components (RSC), and Server Actions, which naturally encourage grouping server and client logic by route or feature.
+
+### 2. The Repository Structure
+
+This structure separates Next.js routing concerns from your core application logic, providing clarity and scalability.
+
+```plaintext
+.
+├── app/                      # Next.js App Router (Routing and Layouts)
+│   ├── (app)/                # Authenticated application routes
+│   │   ├── dashboard/
+│   │   │   └── page.tsx
+│   │   └── settings/
+│   │       └── page.tsx
+│   ├── (public)/          # Public routes
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── api/                  # API routes (webhooks, etc. -> e.g. /api/posts/events)
+│   │   └── ...
+│   ├── layout.tsx            # Root layout
+│   └── globals.css           # Global styles
+│
+├── components/           # Shared, global components
+│   ├── ui/               # UI primitives (e.g., shadcn/ui Button, Card)
+│   └── shared/           # Complex shared components (e.g., PageHeader)
+│
+├── features/             # ✨ VERTICAL SLICES (The heart of the app)
+│   ├── posts/            # Example feature (posts)
+│   │   ├── components/   # Components specific to 'posts'
+│   │   │   ├── post-card.tsx
+│   │   │   └── create-post-form.tsx
+│   │   ├── api/          # API routes for 'posts'
+│   │   │   └── events.ts # Route handlers for post webhooks
+│   │   ├── queries.ts    # Data fetching functions for 'posts'
+│   │   ├── service.ts    # Service layer for 'posts'
+│   │   ├── actions.ts    # Server Actions for 'posts'
+│   │   ├── hooks.ts      # Custom hooks for 'posts'
+│   │   └── types.ts      # TypeScript types for 'posts'
+│   │
+│   └── auth/
+│       ├── ...           # Same structure for the 'auth' domain
+│
+├── lib/                  # Low-level utilities and configurations
+│   ├── auth.ts           # Authentication config (e.g., NextAuth.js)
+│   ├── db/               # Database client, schema, and migrations
+│   ├── utils.ts          # General helper functions (e.g., cn)
+│   └── validators/       # Zod schemas for data validation
+│
+├── hooks/                # Shared, global custom React hooks
+├── config/               # Application-wide configuration
+└── types/                # Global TypeScript types
+│
+├── public/                   # Static assets (images, fonts)
+├── scripts/                  # Standalone scripts (e.g., DB seeding)
+├── tailwind.config.ts
+└── tsconfig.json
+```
+
+### 3. Data Flow: RSC, Server Actions, and Queries
+
+This architecture fully embraces the server-centric model of the Next.js App Router.
+
+#### **Data Fetching: Server Components First**
+
+By default, all data fetching should happen on the server, inside React Server Components (RSCs).
+
+1. **Define Queries:** Create reusable data-fetching functions in your feature's `queries.ts` file. These functions can directly access your database.
+2. **Call from RSCs:** Import and `await` these query functions directly within your `page.tsx` or server-only layout files.
+
+This pattern eliminates the need for API endpoints for data fetching and avoids client-side request waterfalls, resulting in faster page loads.
+
+#### **Data Mutations: Server Actions**
+
+All data creations, updates, and deletions should be handled by Server Actions.
+
+1. **Define Actions:** Create your Server Actions in the feature's `actions.ts` file. These are async functions marked with the `"use server";` directive. They contain the logic to mutate data in your database.
+2. **Validate Input:** Use a library like Zod inside your Server Actions to validate the incoming data. Never trust the client.
+3. **Invoke from Client:** Call these actions from your client components, typically within a form's `action` prop or an event handler. Use React's `useFormState` and `useFormStatus` hooks to handle pending states, errors, and optimistic updates without complex client-side state management.
+
+This approach keeps mutation logic on the server, enhances security, and dramatically simplifies form handling on the client.
+
+### 4. Key Takeaways & Best Practices
+
+- **Embrace the Server:** Do as much as you can on the server. Fetch data, mutate data, and render components there. Only use `"use client"` when you absolutely need interactivity, state, or browser-only APIs.
+- **Colocate by Feature:** The `features` directory is your most important asset for long-term maintainability. Be disciplined about keeping feature-specific logic inside its designated slice.
+- **`lib` is for Truly Shared Code:** The `lib` directory should only contain code that is generic and can be used by _any_ feature (e.g., database client, auth config, date formatters). If code is only used by one or two features, it's better to keep it within those features.
+- **Validation is Non-Negotiable:** Always validate data on the server within your Server Actions before it touches your database. Zod is the industry standard for this.
+- **Keep Client State Simple:** The combination of RSC and Server Actions drastically reduces the need for complex client-side state managers like Redux or Zustand. Start with `useState` and `useReducer`. Reach for more powerful tools only when component prop drilling becomes a significant problem.
+- **Composition over Inheritance:** Use composition to build complex components rather than extending base classes. Component Composition with `children` is the preferred way to build complex components.
+
+This architecture provides a robust foundation for building a production-grade Next.js application that is a pleasure to work on, easy to scale, and fast for your users.
 
 ## Architecture Overview
 

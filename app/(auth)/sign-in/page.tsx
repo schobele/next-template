@@ -1,8 +1,8 @@
 "use client";
 
-import SignIn from "@/components/sign-in";
-import { SignUp } from "@/components/sign-up";
-import MagicLinkSignIn from "@/components/magic-link-sign-in";
+import SignIn from "@/features/auth/components/sign-in";
+import { SignUp } from "@/features/auth/components/sign-up";
+import MagicLinkSignIn from "@/features/auth/components/magic-link-sign-in";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { client } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";

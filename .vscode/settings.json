@@ -9,5 +9,6 @@
 	"editor.codeActionsOnSave": {
 		"source.fixAll.biome": "explicit",
 		"source.organizeImports.biome": "explicit"
-	}
+	},
+	"references.preferredLocation": "view"
 }

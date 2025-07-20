@@ -1,14 +1,14 @@
 {
-	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"linter": {
-		"rules": {
-			"suspicious": {
-				"noConsole": "off"
-			}
-		}
-	},
-	"extends": ["ultracite"],
-	"files": {
-		"includes": ["./lib", "./app", "./components", "./hooks", "./utils"]
-	}
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noConsole": "off"
+      }
+    }
+  },
+  "extends": ["ultracite"],
+  "files": {
+    "includes": ["./lib", "./app", "./components", "./hooks", "./utils"]
+  }
 }

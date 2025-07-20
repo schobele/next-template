@@ -52,4 +52,6 @@ export const {
 	organization,
 	useListOrganizations,
 	useActiveOrganization,
+	twoFactor,
+	passkey,
 } = client;

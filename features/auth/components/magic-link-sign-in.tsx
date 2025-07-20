@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { sendMagicLink } from "@/app/(auth)/actions";
+// Removed unused import
 import { client } from "@/lib/auth/client";
 
 export default function MagicLinkSignIn() {
@@ -51,7 +51,7 @@ export default function MagicLinkSignIn() {
 	};
 
 	return (
-		<Card className="max-w-md rounded-none">
+		<Card className="max-w-md">
 			<CardHeader>
 				<CardTitle className="text-lg md:text-xl">
 					Sign In with Magic Link

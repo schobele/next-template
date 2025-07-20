@@ -133,3 +133,5 @@ export const auth = betterAuth({
 	],
 	trustedOrigins: ["exp://"],
 });
+
+export type { Session, User } from "better-auth/types";

@@ -33,7 +33,11 @@ import {
 	useListOrganizations,
 	useSession,
 } from "@/lib/auth/client";
-import { ActiveOrganization, Session } from "@/lib/auth/types";
+import type {
+	Session,
+	Organization,
+	OrganizationWithDetails,
+} from "@/features/auth/types";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import { Loader2, MailPlus } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -44,12 +48,11 @@ import Image from "next/image";
 
 export function OrganizationCard(props: {
 	session: Session | null;
-	activeOrganization: ActiveOrganization | null;
+	activeOrganization: OrganizationWithDetails | null;
 }) {
 	const organizations = useListOrganizations();
-	const [optimisticOrg, setOptimisticOrg] = useState<ActiveOrganization | null>(
-		props.activeOrganization
-	);
+	const [optimisticOrg, setOptimisticOrg] =
+		useState<OrganizationWithDetails | null>(props.activeOrganization);
 	const [isRevoking, setIsRevoking] = useState<string[]>([]);
 	const inviteVariants = {
 		hidden: { opacity: 0, height: 0 },
@@ -60,7 +63,7 @@ export function OrganizationCard(props: {
 	const { data } = useSession();
 	const session = data || props.session;
 
-	const currentMember = optimisticOrg?.members.find(
+	const currentMember = optimisticOrg?.members?.find(
 		(member) => member.userId === session?.user.id
 	);
 
@@ -108,7 +111,7 @@ export function OrganizationCard(props: {
 										const { data } = await organization.setActive({
 											organizationId: org.id,
 										});
-										setOptimisticOrg(data);
+										setOptimisticOrg(data as any);
 									}}
 								>
 									<p className="text-sm sm">{org.name}</p>
@@ -133,7 +136,7 @@ export function OrganizationCard(props: {
 					<div>
 						<p>{optimisticOrg?.name || "Personal"}</p>
 						<p className="text-xs text-muted-foreground">
-							{optimisticOrg?.members.length || 1} members
+							{optimisticOrg?.members?.length || 1} members
 						</p>
 					</div>
 				</div>
@@ -145,7 +148,7 @@ export function OrganizationCard(props: {
 							Members
 						</p>
 						<div className="flex flex-col gap-2">
-							{optimisticOrg?.members.map((member) => (
+							{optimisticOrg?.members?.map((member) => (
 								<div
 									key={member.id}
 									className="flex justify-between items-center"
@@ -176,6 +179,7 @@ export function OrganizationCard(props: {
 												onClick={() => {
 													organization.removeMember({
 														memberIdOrEmail: member.id,
+														organizationId: optimisticOrg.id,
 													});
 												}}
 											>
@@ -209,7 +213,7 @@ export function OrganizationCard(props: {
 						<div className="flex flex-col gap-2">
 							<AnimatePresence>
 								{optimisticOrg?.invitations
-									.filter((invitation) => invitation.status === "pending")
+									?.filter((invitation) => invitation.status === "pending")
 									.map((invitation) => (
 										<motion.div
 											key={invitation.id}
@@ -252,7 +256,7 @@ export function OrganizationCard(props: {
 																	setOptimisticOrg({
 																		...optimisticOrg,
 																		invitations:
-																			optimisticOrg?.invitations.filter(
+																			optimisticOrg?.invitations?.filter(
 																				(inv) => inv.id !== invitation.id
 																			),
 																	});
@@ -284,7 +288,7 @@ export function OrganizationCard(props: {
 										</motion.div>
 									))}
 							</AnimatePresence>
-							{optimisticOrg?.invitations.length === 0 && (
+							{(optimisticOrg?.invitations?.length ?? 0) === 0 && (
 								<motion.p
 									className="text-sm text-muted-foreground"
 									initial={{ opacity: 0 }}
@@ -448,8 +452,8 @@ function InviteMemberDialog({
 	setOptimisticOrg,
 	optimisticOrg,
 }: {
-	setOptimisticOrg: (org: ActiveOrganization | null) => void;
-	optimisticOrg: ActiveOrganization | null;
+	setOptimisticOrg: (org: OrganizationWithDetails | null) => void;
+	optimisticOrg: OrganizationWithDetails | null;
 }) {
 	const [open, setOpen] = useState(false);
 	const [email, setEmail] = useState("");

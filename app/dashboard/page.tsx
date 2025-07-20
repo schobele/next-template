@@ -1,40 +1,42 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { OrganizationCard } from "./organization-card";
-import AccountSwitcher from "@/components/account-switch";
+import type { OrganizationWithDetails } from "@/features/auth/types";
+import AccountSwitcher from "@/features/auth/components/account-switch";
+import {
+	getSession,
+	getDeviceSessions,
+	getActiveOrganization,
+} from "@/features/auth/queries";
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { DataTable } from "@/components/data-table";
+import { SiteHeader } from "@/components/site-header";
+import { SectionCards } from "@/components/section-cards";
+
+import data from "./data.json";
 
 export default async function DashboardPage() {
-	const [session, activeSessions, deviceSessions, organization] =
-		await Promise.all([
-			auth.api.getSession({
-				headers: await headers(),
-			}),
-			auth.api.listSessions({
-				headers: await headers(),
-			}),
-			auth.api.listDeviceSessions({
-				headers: await headers(),
-			}),
-			auth.api.getFullOrganization({
-				headers: await headers(),
-			}),
-		]).catch((e) => {
-			console.log(e);
-			throw redirect("/sign-in");
-		});
+	const [session, deviceSessions, organization] = await Promise.all([
+		getSession(),
+		getDeviceSessions(),
+		getActiveOrganization(),
+	]).catch((e) => {
+		console.log(e);
+		throw redirect("/sign-in");
+	});
 	return (
-		<div className="w-full">
-			<div className="flex gap-4 flex-col">
-				<AccountSwitcher
-					sessions={JSON.parse(JSON.stringify(deviceSessions))}
-				/>
-
-				<OrganizationCard
-					session={JSON.parse(JSON.stringify(session))}
-					activeOrganization={JSON.parse(JSON.stringify(organization))}
-				/>
+		<>
+			<SiteHeader />
+			<div className="flex flex-1 flex-col">
+				<div className="@container/main flex flex-1 flex-col gap-2">
+					<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+						<SectionCards />
+						<div className="px-4 lg:px-6">
+							<ChartAreaInteractive />
+						</div>
+						<DataTable data={data} />
+					</div>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }
