@@ -1,0 +1,20 @@
+version: "3.8"
+name: "spawn-bot"
+
+services:
+  database:
+    image: "postgres:15"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=spawn_db
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - spawn-bot-network
+
+networks:
+  spawn-bot-network:
+    driver: bridge
